@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Virtual Bingo</title>
+
+  <style>
+    table {
+      border-collapse: collapse;
+    }
+
+    th, td {
+      width: 60px;
+      height: 60px;
+      text-align: center;
+      font-size: 22px;
+      border: 2px solid black;
+    }
+
+    th {
+      background: #ddd;
+    }
+
+    .marked {
+      background: yellow;
+      font-weight: bold;
+    }
+
+    #win {
+      font-size: 30px;
+      font-weight: bold;
+    }
+
+    #prize {
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    #wallet {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    #history {
+      font-size: 18px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Virtual Bingo</h1>
+
+<h2>💰 Player Wallet</h2>
+<p id="wallet">Wallet: 0 Birr</p>
+
+<h2>📋 Transaction History</h2>
+<div id="history">No transactions yet.</div>
+
+<h2>🎫 My Cartela</h2>
+
+<button onclick="buyCartela()">BUY CARTELA – 10 BIRR</button>
+
+<div id="cartela"></div>
+
+<br>
+
+<button onclick="startBingo()">START BINGO</button>
+<button id="drawButton" onclick="drawNumber()">DRAW NUMBER</button>
+
+<p id="status">-</p>
+
+<p id="number">Current Number: -</p>
+
+<h2>Drawn Numbers</h2>
+
+<div id="drawnNumbers">-</div>
+
+<p id="win"></p>
+<p id="prize"></p>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+
+let drawnNumbers = [];
+let cartela = [];
+let hasWon = false;
+let wallet = 100;
+let transactions = [];
+
+const socket = io();
+
+
+socket.on("number", (number) => {
+
+  drawnNumbers.push(number);
+
+  document.getElementById("number").innerText =
+    "Current Number: " + number;
+
+  document.getElementById("drawnNumbers").innerText =
+    drawnNumbers.join(" - ");
+
+  markNumber();
+  checkBingo();
+
+});
+
+
+socket.on("winner", (data) => {
+
+  hasWon = true;
+
+  wallet = wallet + data.prize;
+
+  transactions.push({
+    type: "Bingo Prize",
+    amount: data.prize
+  });
+
+  document.getElementById("wallet").innerText =
+    "Wallet: " + wallet + " Birr";
+
+  document.getElementById("win").innerText =
+    "🎉 BINGO! YOU WIN! 🎉";
+
+  document.getElementById("prize").innerText =
+    "💰 Prize: " + data.prize + " Birr";
+
+  document.getElementById("status").innerText =
+    "BINGO STOPPED";
+
+  document.getElementById("drawButton").disabled = true;
+
+  showHistory();
+
+});
+
+
+function showHistory() {
+
+  let html = "";
+
+  for (let i = transactions.length - 1; i >= 0; i--) {
+
+    html +=
+      "<p>✅ +" +
+      transactions[i].amount +
+      " Birr — " +
+      transactions[i].type +
+      "</p>";
+
+  }
+
+  document.getElementById("history").innerHTML =
+    html || "No transactions yet.";
+
+}
+
+
+function startBingo() {
+
+  fetch("/start", {
+    method: "POST"
+  })
+  .then(response => response.json())
+  .then(data => {
+
+    if (data.success) {
+
+      drawnNumbers = [];
+      hasWon = false;
+
+      document.getElementById("status").innerText =
+        "BINGO STARTED";
+
+      document.getElementById("number").innerText =
+        "Current Number: -";
+
+      document.getElementById("drawnNumbers").innerText =
+        "-";
+
+      document.getElementById("win").innerText =
+        "";
+
+      document.getElementById("prize").innerText =
+        "";
+
+      document.getElementById("drawButton").disabled = false;
+
+      markNumber();
+
+    }
+
+  });
+
+}
+
+
+function drawNumber() {
+
+  if (hasWon) return;
+
+  fetch("/draw", {
+    method: "POST"
+  })
+  .then(response => response.json())
+  .then(data => {
+
+    if (!data.number) {
+
+      document.getElementById("number").innerText =
+        data.message;
+
+    }
+
+  });
+
+}
+
+
+function buyCartela() {
+
+  if (wallet < 10) {
+    alert("Insufficient balance. You need 10 Birr.");
+    return;
+  }
+
+  wallet -
+
+  let B = [];
+  let I = [];
+  let N = [];
+  let G = [];
+  let O = [];
+
+
+  while (B.length < 5) {
+
+    let n =
+      Math.floor(Math.random() * 15) + 1;
+
+    if (!B.includes(n)) B.push(n);
+
+  }
+
+
+  while (I.length < 5) {
+
+    let n =
+      Math.floor(Math.random() * 15) + 16;
+
+    if (!I.includes(n)) I.push(n);
+
+  }
+
+
+  while (N.length < 5) {
+
+    let n =
+      Math.floor(Math.random() * 15) + 31;
+
+    if (!N.includes(n)) N.push(n);
+
+  }
+
+
+  while (G.length < 5) {
+
+    let n =
+      Math.floor(Math.random() * 15) + 46;
+
+    if (!G.includes(n)) G.push(n);
+
+  }
+
+
+  while (O.length < 5) {
+
+    let n =
+      Math.floor(Math.random() * 15) + 61;
+
+    if (!O.includes(n)) O.push(n);
+
+  }
+
+
+  N[2] = "FREE";
+
+  cartela = [B, I, N, G, O];
+
+  hasWon = false;
+
+  markNumber();
+
+}
+
+
+function markNumber() {
+
+  let html =
+    "<table>" +
+    "<tr>" +
+    "<th>B</th>" +
+    "<th>I</th>" +
+    "<th>N</th>" +
+    "<th>G</th>" +
+    "<th>O</th>" +
+    "</tr>";
+
+
+  for (let row = 0; row < 5; row++) {
+
+    html += "<tr>";
+
+
+    for (let col = 0; col < 5; col++) {
+
+      let value = cartela[col][row];
+
+      let marked = "";
+
+
+      if (
+        value === "FREE" ||
+        drawnNumbers.includes(value)
+      ) {
+
+        marked = " class='marked'";
+
+      }
+
+
+      html +=
+        "<td" +
+        marked +
+        ">" +
+        value +
+        "</td>";
+
+    }
+
+
+    html += "</tr>";
+
+  }
+
+
+  html += "</table>";
+
+  document.getElementById("cartela").innerHTML =
+    html;
+
+}
+
+
+function checkBingo() {
+
+  if (cartela.length === 0 || hasWon) return;
+
+
+  for (let row = 0; row < 5; row++) {
+
+    let count = 0;
+
+    for (let col = 0; col < 5; col++) {
+
+      let value = cartela[col][row];
+
+      if (
+        value === "FREE" ||
+        drawnNumbers.includes(value)
+      ) {
+        count++;
+      }
+
+    }
+
+    if (count === 5) {
+
+      hasWon = true;
+      socket.emit("bingo");
+      return;
+
+    }
+
+  }
+
+
+  for (let col = 0; col < 5; col++) {
+
+    let count = 0;
+
+    for (let row = 0; row < 5; row++) {
+
+      let value = cartela[col][row];
+
+      if (
+        value === "FREE" ||
+        drawnNumbers.includes(value)
+      ) {
+        count++;
+      }
+
+    }
+
+    if (count === 5) {
+
+      hasWon = true;
+      socket.emit("bingo");
+      return;
+
+    }
+
+  }
+
+
+  let count1 = 0;
+
+  for (let i = 0; i < 5; i++) {
+
+    let value = cartela[i][i];
+
+    if (
+      value === "FREE" ||
+      drawnNumbers.includes(value)
+    ) {
+      count1++;
+    }
+
+  }
+
+  if (count1 === 5) {
+
+    hasWon = true;
+    socket.emit("bingo");
+    return;
+
+  }
+
+
+  let count2 = 0;
+
+  for (let i = 0; i < 5; i++) {
+
+    let value = cartela[i][4 - i];
+
+    if (
+      value === "FREE" ||
+      drawnNumbers.includes(value)
+    ) {
+      count2++;
+    }
+
+  }
+
+  if (count2 === 5) {
+
+    hasWon = true;
+    socket.emit("bingo");
+    return;
+
+  }
+
+}
+
+
+generateCartela();
+showHistory();
+
+</script>
+
+</body>
+</html>

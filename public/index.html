@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Virtual Bingo</title>
+
+<style>
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f1f5f9;
+  color: #111827;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  margin-bottom: 18px;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+h1 {
+  text-align: center;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 13px 20px;
+  margin: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+input {
+  width: 100%;
+  padding: 13px;
+  margin: 7px 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+.login-box {
+  max-width: 400px;
+  margin: 60px auto;
+}
+
+.login-button {
+  width: 100%;
+  margin: 10px 0;
+}
+
+.demo {
+  text-align: center;
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 10px;
+  margin-top: 15px;
+}
+
+.hidden {
+  display: none;
+}
+
+.center {
+  text-align: center;
+}
+
+.wallet {
+  font-size: 30px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.current-number {
+  text-align: center;
+  font-size: 45px;
+  font-weight: bold;
+  margin: 20px;
+}
+
+.status {
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.drawn {
+  line-height: 2;
+  word-break: break-word;
+}
+
+.win {
+  text-align: center;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.prize {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.history-item {
+  padding: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.logout {
+  float: right;
+}
+
+.admin-buttons {
+  text-align: center;
+}
+
+.cartela-number {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+table {
+  border-collapse: collapse;
+  margin: auto;
+}
+
+th,
+td {
+  width: 65px;
+  height: 60px;
+  border: 2px solid #111827;
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+th {
+  background: #e2e8f0;
+}
+
+.marked {
+  background: #facc15;
+}
+
+@media (max-width: 600px) {
+
+  .container {
+    padding: 10px;
+  }
+
+  th,
+  td {
+    width: 52px;
+    height: 52px;
+    font-size: 16px;
+  }
+
+  .current-number {
+    font-size: 35px;
+  }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+
+<div id="loginPage" class="login-box">
+
+  <div class="card">
+
+    <h1>🎱 Virtual Bingo</h1>
+
+    <h2 class="center">
+      Login
+    </h2>
+
+    <input
+      id="username"
+      type="text"
+      placeholder="Username">
+
+    <input
+      id="password"
+      type="password"
+      placeholder="Password">
+
+    <button
+      class="login-button"
+      onclick="login()">
+
+      🔐 LOGIN
+
+    </button>
+
+    <div id="loginMessage" class="center"></div>
+
+    <div class="demo">
+
+      <b>Demo Login</b>
+
+      <br><br>
+
+      Admin:
+      <b>admin</b> /
+      <b>1234</b>
+
+      <br>
+
+      Player:
+      <b>player</b> /
+      <b>1234</b>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- APP -->
+
+<div id="appPage" class="container hidden">
+
+  <button
+    class="logout"
+    onclick="logout()">
+
+    Logout
+
+  </button>
+
+  <h1>
+    🎱 Virtual Bingo
+  </h1>
+
+
+  <div class="card">
+
+    <h2 id="welcome"></h2>
+
+    <div id="roleText" class="center"></div>
+
+  </div>
+
+
+  <!-- ADMIN -->
+
+  <div id="adminPanel" class="hidden">
+
+    <div class="card">
+
+      <h2>
+        👑 Admin Dashboard
+      </h2>
+
+      <div class="admin-buttons">
+
+        <button onclick="startBingo()">
+          ▶ START BINGO
+        </button>
+
+        <button onclick="drawNumber()">
+          🎱 DRAW NUMBER
+        </button>
+
+        <button onclick="stopBingo()">
+          ⏹ STOP BINGO
+        </button>
+
+      </div>
+
+      <div id="adminStatus" class="status">
+        🔴 Bingo is stopped
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- PLAYER -->
+
+  <div id="playerPanel" class="hidden">
+
+    <div class="card">
+
+      <h2>
+        💰 Player Wallet
+      </h2>
+
+      <div id="wallet" class="wallet">
+        Wallet: 100 Birr
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>
+        📋 Transaction History
+      </h2>
+
+      <div id="history">
+        No transactions yet.
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>
+        🎫 My Cartela
+      </h2>
+
+      <div class="center">
+
+        <button onclick="buyCartela()">
+          BUY CARTELA – 10 BIRR
+        </button>
+
+      </div>
+
+      <div id="cartela">
+
+        <p class="center">
+          No Cartela purchased.
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- COMMON GAME -->
+
+  <div class="card">
+
+    <div id="status" class="status">
+      🔴 Bingo is stopped
+    </div>
+
+    <div id="number" class="current-number">
+      Current Number: -
+    </div>
+
+  </div>
+
+
+  <div class="card">
+
+    <h2>
+      🎱 Drawn Numbers
+    </h2>
+
+    <div id="drawnNumbers" class="drawn">
+      -
+    </div>
+
+  </div>
+
+
+  <div class="card">
+
+    <div id="win" class="win"></div>
+
+    <div id="prize" class="prize"></div>
+
+  </div>
+
+</div>
+
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+
+let socket = null;
+
+let role = "";
+
+let username = "";
+
+let wallet = 100;
+
+let transactions = [];
+
+let cartela = [];
+
+let cartelaNumber = "";
+
+let drawnNumbers = [];
+
+let hasWon = false;
+
+let gameRunning = false;
+
+
+/* LOGIN */
+
+function login() {
+
+  const usernameInput =
+    document.getElementById("username").value.trim();
+
+  const passwordInput =
+    document.getElementById("password").value;
+
+  if (!usernameInput || !passwordInput) {
+
+    document.getElementById("loginMessage").innerText =
+      "Please enter username and password.";
+
+    return;
+
+  }
+
+  fetch("/login", {
+
+    method: "POST",
+
+    headers: {
+      "Content-Type": "application/json"
+    },
+
+    body: JSON.stringify({
+      username: usernameInput,
+      password: passwordInput
+    })
+
+  })
+
+  .then(response => response.json())
+
+  .then(data => {
+
+    if (!data.success) {
+
+      document.getElementById("loginMessage").innerText =
+        data.message;
+
+      return;
+
+    }
+
+    role = data.role;
+
+    username =
+      data.username ||
+      usernameInput;
+
+    document.getElementById("loginPage")
+      .classList.add("hidden");
+
+    document.getElementById("appPage")
+      .classList.remove("hidden");
+
+    document.getElementById("welcome").innerText =
+      "Welcome, " + username;
+
+    document.getElementById("roleText").innerText =
+      "Role: " + role.toUpperCase();
+
+    if (role === "admin") {
+
+      document.getElementById("adminPanel")
+        .classList.remove("hidden");
+
+    }
+
+    if (role === "player") {
+
+      document.getElementById("playerPanel")
+        .classList.remove("hidden");
+
+      loadPlayerData();
+
+    }
+
+    connectSocket();
+
+  });
+
+}
+
+
+/* SOCKET */
+
+function connectSocket() {
+
+  socket = io();
+
+  socket.on("connect", () => {
+
+    console.log(
+      "Connected:",
+      socket.id
+    );
+
+  });
+
+
+  socket.on("bingoStarted", () => {
+
+    gameRunning = true;
+
+    document.getElementById("status").innerText =
+      "🟢 BINGO STARTED";
+
+    const adminStatus =
+      document.getElementById("adminStatus");
+
+    if (adminStatus) {
+
+      adminStatus.innerText =
+        "🟢 Bingo is running";
+
+    }
+
+  });
+
+
+  socket.on("bingoStopped", () => {
+
+    gameRunning = false;
+
+    document.getElementById("status").innerText =
+      "🔴 BINGO STOPPED";
+
+    const adminStatus =
+      document.getElementById("adminStatus");
+
+    if (adminStatus) {
+
+      adminStatus.innerText =
+        "🔴 Bingo is stopped";
+
+    }
+
+  });
+
+
+  socket.on("number", number => {
+
+    drawnNumbers.push(number);
+
+    document.getElementById("number").innerText =
+      "Current Number: " + number;
+
+    document.getElementById("drawnNumbers").innerText =
+      drawnNumbers.join(" - ");
+
+    speakNumber(number);
+
+    if (role === "player") {
+
+      drawCartela();
+
+      checkBingo();
+
+    }
+
+  });
+
+
+  socket.on("winner", data => {
+
+    gameRunning = false;
+
+    document.getElementById("status").innerText =
+      "🔴 BINGO STOPPED";
+
+    const winners =
+      Array.isArray(data.winners)
+        ? data.winners
+        : [];
+
+    const prizePerWinner =
+      Number(data.prizePerWinner || 0);
+
+    const winnerCount =
+      winners.length;
+
+    if (
+      role === "player" &&
+      winners.includes(socket.id)
+    ) {
+
+      wallet += prizePerWinner;
+
+      transactions.push({
+
+        type: "Bingo Prize",
+
+        amount: prizePerWinner
+
+      });
+
+      savePlayerData();
+
+      updateWallet();
+
+      showHistory();
+
+      document.getElementById("win").innerText =
+        "🎉 BINGO! YOU WIN! 🎉";
+
+      document.getElementById("prize").innerText =
+        "💰 Prize: +" +
+        prizePerWinner.toFixed(2) +
+        " Birr";
+
+    } else {
+
+      document.getElementById("win").innerText =
+        "🏆 We have " +
+        winnerCount +
+        " Bingo winner(s)!";
+
+      document.getElementById("prize").innerText =
+        "💰 Prize per winner: " +
+        prizePerWinner.toFixed(2) +
+        " Birr";
+
+    }
+
+  });
+
+}
+
+
+/* START */
+
+function startBingo() {
+
+  fetch("/start", {
+    method: "POST"
+  })
+
+  .then(response => response.json())
+
+  .then(data => {
+
+    if (data.success) {
+
+      drawnNumbers = [];
+
+      hasWon = false;
+
+      document.getElementById("number").innerText =
+        "Current Number: -";
+
+      document.getElementById("drawnNumbers").innerText =
+        "-";
+
+      document.getElementById("win").innerText =
+        "";
+
+      document.getElementById("prize").innerText =
+        "";
+
+    }
+
+  });
+
+}
+
+
+/* DRAW */
+
+function drawNumber() {
+
+  fetch("/draw", {
+    method: "POST"
+  })
+
+  .then(response => response.json())
+
+  .then(data => {
+
+    if (data.message) {
+
+      alert(data.message);
+
+    }
+
+  });
+
+}
+
+
+/* STOP */
+
+function stopBingo() {
+
+  fetch("/stop", {
+    method: "POST"
+  });
+
+}
+
+
+/* PLAYER DATA */
+
+function loadPlayerData() {
+
+  const savedWallet =
+    localStorage.getItem("bingoWalletV2");
+
+  if (savedWallet !== null) {
+
+    wallet =
+      Number(savedWallet);
+
+  } else {
+
+    wallet = 100;
+
+    savePlayerData();
+
+  }
+
+
+  const savedHistory =
+    localStorage.getItem("bingoTransactionsV2");
+
+  if (savedHistory) {
+
+    try {
+
+      transactions =
+        JSON.parse(savedHistory);
+
+    } catch {
+
+      transactions = [];
+
+    }
+
+  }
+
+
+  /* LOAD CARTELA */
+
+  const savedCartela =
+    localStorage.getItem("bingoCartelaV3");
+
+  if (savedCartela) {
+
+    try {
+
+      const savedData =
+        JSON.parse(savedCartela);
+
+      cartela =
+        savedData.cartela || [];
+
+      cartelaNumber =
+        savedData.cartelaNumber || "";
+
+    } catch {
+
+      cartela = [];
+
+      cartelaNumber = "";
+
+    }
+
+  }
+
+
+  updateWallet();
+
+  showHistory();
+
+  drawCartela();
+
+}
+
+
+/* SAVE PLAYER DATA */
+
+function savePlayerData() {
+
+  localStorage.setItem(
+    "bingoWalletV2",
+    wallet
+  );
+
+  localStorage.setItem(
+    "bingoTransactionsV2",
+    JSON.stringify(transactions)
+  );
+
+}
+
+
+/* SAVE CARTELA */
+
+function saveCartela() {
+
+  localStorage.setItem(
+    "bingoCartelaV3",
+    JSON.stringify({
+
+      cartela: cartela,
+
+      cartelaNumber: cartelaNumber
+
+    })
+  );
+
+}
+
+
+/* WALLET */
+
+function updateWallet() {
+
+  const walletElement =
+    document.getElementById("wallet");
+
+  if (walletElement) {
+
+    walletElement.innerText =
+      "Wallet: " +
+      wallet.toFixed(2) +
+      " Birr";
+
+  }
+
+}
+
+
+/* HISTORY */
+
+function showHistory() {
+
+  const historyElement =
+    document.getElementById("history");
+
+  if (!historyElement) {
+    return;
+  }
+
+  if (transactions.length === 0) {
+
+    historyElement.innerText =
+      "No transactions yet.";
+
+    return;
+
+  }
+
+  let html = "";
+
+  for (
+    let i = transactions.length - 1;
+    i >= 0;
+    i--
+  ) {
+
+    const item =
+      transactions[i];
+
+    const sign =
+      item.amount >= 0
+        ? "+"
+        : "";
+
+    html +=
+      "<div class='history-item'>" +
+
+      sign +
+
+      Number(item.amount).toFixed(2) +
+
+      " Birr — " +
+
+      item.type +
+
+      "</div>";
+
+  }
+
+  historyElement.innerHTML =
+    html;
+
+}
+
+
+/* BUY CARTELA */
+
+function buyCartela() {
+
+  if (gameRunning) {
+
+    alert(
+      "Please wait until Bingo is finished."
+    );
+
+    return;
+
+  }
+
+  if (wallet < 10) {
+
+    alert(
+      "Insufficient balance. You need 10 Birr."
+    );
+
+    return;
+
+  }
+
+  wallet -= 10;
+
+  transactions.push({
+
+    type: "Cartela Purchase",
+
+    amount: -10
+
+  });
+
+  savePlayerData();
+
+  updateWallet();
+
+  showHistory();
+
+  generateCartela();
+
+}
+
+
+/* GENERATE CARTELA */
+
+function generateCartela() {
+
+  /* AUTOMATIC CARTELA NUMBER */
+
+  let newNumber;
+
+  do {
+
+    newNumber =
+      Math.floor(
+        100000 +
+        Math.random() * 900000
+      ).toString();
+
+  } while (
+    newNumber === cartelaNumber
+  );
+
+  cartelaNumber =
+    newNumber;
+
+
+  let B = [];
+
+  let I = [];
+
+  let N = [];
+
+  let G = [];
+
+  let O = [];
+
+
+  while (B.length < 5) {
+
+    const n =
+      Math.floor(
+        Math.random() * 15
+      ) + 1;
+
+    if (!B.includes(n)) {
+
+      B.push(n);
+
+    }
+
+  }
+
+
+  while (I.length < 5) {
+
+    const n =
+      Math.floor(
+        Math.random() * 15
+      ) + 16;
+
+    if (!I.includes(n)) {
+
+      I.push(n);
+
+    }
+
+  }
+
+
+  while (N.length < 5) {
+
+    const n =
+      Math.floor(
+        Math.random() * 15
+      ) + 31;
+
+    if (!N.includes(n)) {
+
+      N.push(n);
+
+    }
+
+  }
+
+
+  while (G.length < 5) {
+
+    const n =
+      Math.floor(
+        Math.random() * 15
+      ) + 46;
+
+    if (!G.includes(n)) {
+
+      G.push(n);
+
+    }
+
+  }
+
+
+  while (O.length < 5) {
+
+    const n =
+      Math.floor(
+        Math.random() * 15
+      ) + 61;
+
+    if (!O.includes(n)) {
+
+      O.push(n);
+
+    }
+
+  }
+
+
+  N[2] = "FREE";
+
+
+  cartela = [
+    B,
+    I,
+    N,
+    G,
+    O
+  ];
+
+
+  hasWon = false;
+
+
+  saveCartela();
+
+  drawCartela();
+
+}
+
+
+/* SHOW CARTELA */
+
+function drawCartela() {
+
+  const cartelaElement =
+    document.getElementById("cartela");
+
+  if (!cartelaElement) {
+    return;
+  }
+
+
+  if (cartela.length === 0) {
+
+    cartelaElement.innerHTML =
+      "<p class='center'>" +
+      "No Cartela purchased." +
+      "</p>";
+
+    return;
+
+  }
+
+
+  let html =
+
+    "<div class='cartela-number'>" +
+
+    "🎫 Cartela No: " +
+
+    cartelaNumber +
+
+    "</div>" +
+
+    "<table>" +
+
+    "<tr>" +
+
+    "<th>B</th>" +
+
+    "<th>I</th>" +
+
+    "<th>N</th>" +
+
+    "<th>G</th>" +
+
+    "<th>O</th>" +
+
+    "</tr>";
+
+
+  for (
+    let row = 0;
+    row < 5;
+    row++
+  ) {
+
+    html += "<tr>";
+
+    for (
+      let col = 0;
+      col < 5;
+      col++
+    ) {
+
+      const value =
+        cartela[col][row];
+
+      let marked = "";
+
+      if (
+        value === "FREE" ||
+        drawnNumbers.includes(value)
+      ) {
+
+        marked =
+          " class='marked'";
+
+      }
+
+      html +=
+        "<td" +
+        marked +
+        ">" +
+        value +
+        "</td>";
+
+    }
+
+    html += "</tr>";
+
+  }
+
+  html += "</table>";
+
+  cartelaElement.innerHTML =
+    html;
+
+}
+
+
+/* SOUND */
+
+function speakNumber(number) {
+
+  if (
+    !("speechSynthesis" in window)
+  ) {
+
+    return;
+
+  }
+
+  window.speechSynthesis.cancel();
+
+  const speech =
+    new SpeechSynthesisUtterance(
+      "Number " + number
+    );
+
+  speech.lang =
+    "en-US";
+
+  speech.rate =
+    0.8;
+
+  speech.pitch =
+    1;
+
+  window.speechSynthesis.speak(
+    speech
+  );
+
+}
+
+
+/* CHECK BINGO */
+
+function checkBingo() {
+
+  if (
+    role !== "player" ||
+    cartela.length === 0 ||
+    hasWon ||
+    !gameRunning
+  ) {
+
+    return;
+
+  }
+
+
+  /* ROW */
+
+  for (
+    let row = 0;
+    row < 5;
+    row++
+  ) {
+
+    let count = 0;
+
+    for (
+      let col = 0;
+      col < 5;
+      col++
+    ) {
+
+      const value =
+        cartela[col][row];
+
+      if (
+        value === "FREE" ||
+        drawnNumbers.includes(value)
+      ) {
+
+        count++;
+
+      }
+
+    }
+
+    if (count === 5) {
+
+      hasWon = true;
+
+      socket.emit("bingo");
+
+      return;
+
+    }
+
+  }
+
+
+  /* COLUMN */
+
+  for (
+    let col = 0;
+    col < 5;
+    col++
+  ) {
+
+    let count = 0;
+
+    for (
+      let row = 0;
+      row < 5;
+      row++
+    ) {
+
+      const value =
+        cartela[col][row];
+
+      if (
+        value === "FREE" ||
+        drawnNumbers.includes(value)
+      ) {
+
+        count++;
+
+      }
+
+    }
+
+    if (count === 5) {
+
+      hasWon = true;
+
+      socket.emit("bingo");
+
+      return;
+
+    }
+
+  }
+
+
+  /* DIAGONAL 1 */
+
+  let count1 = 0;
+
+  for (
+    let i = 0;
+    i < 5;
+    i++
+  ) {
+
+    const value =
+      cartela[i][i];
+
+    if (
+      value === "FREE" ||
+      drawnNumbers.includes(value)
+    ) {
+
+      count1++;
+
+    }
+
+  }
+
+  if (count1 === 5) {
+
+    hasWon = true;
+
+    socket.emit("bingo");
+
+    return;
+
+  }
+
+
+  /* DIAGONAL 2 */
+
+  let count2 = 0;
+
+  for (
+    let i = 0;
+    i < 5;
+    i++
+  ) {
+
+    const value =
+      cartela[i][4 - i];
+
+    if (
+      value === "FREE" ||
+      drawnNumbers.includes(value)
+    ) {
+
+      count2++;
+
+    }
+
+  }
+
+  if (count2 === 5) {
+
+    hasWon = true;
+
+    socket.emit("bingo");
+
+  }
+
+}
+
+
+/* LOGOUT */
+
+function logout() {
+
+  if (socket) {
+
+    socket.disconnect();
+
+  }
+
+  location.reload();
+
+}
+
+</script>
+
+</body>
+</html>
