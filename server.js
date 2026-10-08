@@ -32,7 +32,7 @@ bot.onText(/\/start/, (msg) => {
     chatId,
     "🎱 Welcome to Virtual Bingo!\n\n" +
     "🎮 Play Bingo:\n" +
-    "http://localhost:3000\n\n" +
+    "https://virtual-bingo-k0v7.onrender.com\n\n" +
     "💰 Demo Birr only"
   );
 
