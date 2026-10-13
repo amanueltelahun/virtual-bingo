@@ -1,1430 +1,753 @@
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Virtual Bingo</title>
-
 <style>
-
-* {
+*{box-sizing:border-box}
+body{font-family:Arial,sans-serif;background:#101827;color:#fff;margin:0;padding:20px}
+.container{max-width:900px;margin:auto}
+.panel{background:#1e293b;padding:20px;border-radius:12px;margin-bottom:16px}
+h1,h2{text-align:center}
+input,button{padding:12px;margin:5px 0;border:0;border-radius:6px;font-size:16px}
+input{width:100%;background:#f1f5f9;color:#111827}
+button{cursor:pointer;background:#2563eb;color:white;font-weight:bold}
+button:disabled{background:#64748b;cursor:not-allowed}
+.green{background:#15803d}
+.red{background:#b91c1c}
+.hidden{display:none!important}
+#cartela{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;max-width:420px;margin:15px auto}
+.cell{background:#f8fafc;color:#111827;padding:12px 2px;text-align:center;border-radius:5px;font-weight:bold;min-height:45px;display:flex;align-items:center;justify-content:center}
+.cell.head{background:#f59e0b;color:#111827}
+.cell.marked{background:#35b86b!important;color:#fff!important;box-shadow:0 0 0 2px #168342 inset}
+#history{display:flex;flex-wrap:wrap;gap:6px}
+.ball{background:#334155;padding:8px 12px;border-radius:50%;font-weight:bold}
+.stat{text-align:center;font-size:18px;margin:10px}
+.small{font-size:13px;color:#cbd5e1}
+#transactions {
+  height: 180px;
+  max-height: 180px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  margin: 10px 0;
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f1f5f9;
-  color: #111827;
-}
-
-.container {
-  max-width: 900px;
-  margin: auto;
-  padding: 20px;
-}
-
-.card {
-  background: white;
-  padding: 20px;
-  margin-bottom: 18px;
-  border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-}
-
-h1 {
-  text-align: center;
-}
-
-h2 {
-  margin-top: 0;
-}
-
-button {
-  border: none;
-  border-radius: 10px;
-  padding: 13px 20px;
-  margin: 5px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-input {
-  width: 100%;
-  padding: 13px;
-  margin: 7px 0;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  font-size: 16px;
-}
-
-.login-box {
-  max-width: 400px;
-  margin: 60px auto;
-}
-
-.login-button {
-  width: 100%;
-  margin: 10px 0;
-}
-
-.demo {
-  text-align: center;
-  background: #f8fafc;
-  padding: 12px;
-  border-radius: 10px;
-  margin-top: 15px;
-}
-
-.hidden {
-  display: none;
-}
-
-.center {
-  text-align: center;
-}
-
-.wallet {
-  font-size: 30px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.current-number {
-  text-align: center;
-  font-size: 45px;
-  font-weight: bold;
-  margin: 20px;
-}
-
-.status {
-  text-align: center;
-  font-size: 22px;
-  font-weight: bold;
-}
-
-.drawn {
-  line-height: 2;
-  word-break: break-word;
-}
-
-.win {
-  text-align: center;
-  font-size: 28px;
-  font-weight: bold;
-}
-
-.prize {
-  text-align: center;
-  font-size: 24px;
-  font-weight: bold;
-}
-
-.history-item {
+#transactions li {
   padding: 8px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #ddd;
+  overflow-wrap: anywhere;
 }
 
-.logout {
-  float: right;
+/* WINNER CELEBRATION */
+#winnerCelebration{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:rgba(2,6,23,.88);
+  overflow:hidden;
 }
-
-.admin-buttons {
-  text-align: center;
+#winnerCelebration.hidden{display:none!important}
+.winner-card{
+  position:relative;
+  z-index:2;
+  width:100%;
+  max-width:440px;
+  padding:30px 20px;
+  text-align:center;
+  background:linear-gradient(145deg,#1e293b,#312e81);
+  border:2px solid #facc15;
+  border-radius:22px;
+  box-shadow:0 0 45px rgba(250,204,21,.45);
+  animation:winnerPop .55s ease-out;
 }
-
-.cartela-number {
-  text-align: center;
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 15px;
+.winner-trophy{
+  font-size:76px;
+  animation:trophyBounce 1s infinite alternate;
 }
-
-table {
-  border-collapse: collapse;
-  margin: auto;
+.winner-title{
+  color:#fde047;
+  font-size:32px;
+  font-weight:900;
+  margin:10px 0;
 }
-
-th,
-td {
-  width: 65px;
-  height: 60px;
-  border: 2px solid #111827;
-  text-align: center;
-  font-size: 20px;
-  font-weight: bold;
+#winnerName{
+  font-size:24px;
+  font-weight:bold;
+  overflow-wrap:anywhere;
 }
-
-th {
-  background: #e2e8f0;
+#winnerDetails{
+  font-size:18px;
+  line-height:1.8;
+  margin:15px 0;
 }
-
-.marked {
-  background: #facc15;
+.confetti-piece{
+  position:absolute;
+  top:-20px;
+  width:10px;
+  height:16px;
+  animation:confettiFall 3s linear forwards;
+  pointer-events:none;
 }
-
-@media (max-width: 600px) {
-
-  .container {
-    padding: 10px;
-  }
-
-  th,
-  td {
-    width: 52px;
-    height: 52px;
-    font-size: 16px;
-  }
-
-  .current-number {
-    font-size: 35px;
-  }
-
+@keyframes confettiFall{
+  to{transform:translateY(110vh) rotate(900deg);opacity:.9}
+}
+@keyframes winnerPop{
+  from{transform:scale(.65);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+@keyframes trophyBounce{
+  from{transform:translateY(0) rotate(-5deg)}
+  to{transform:translateY(-10px) rotate(5deg)}
+}
+@media(prefers-reduced-motion:reduce){
+  .winner-card,.winner-trophy,.confetti-piece{animation:none}
 }
 
 </style>
 </head>
-
 <body>
+<div class="container">
+  <h1>🎱 Virtual Bingo</h1>
 
-<!-- LOGIN -->
 
-<div id="loginPage" class="login-box">
+<section id="loginPanel" class="panel">
+    <h2>Login</h2>
 
-  <div class="card">
+    <input id="username" placeholder="Username" autocomplete="username">
 
-    <h1>🎱 Virtual Bingo</h1>
+    <input id="phoneNumber" type="tel" placeholder="Phone Number" autocomplete="tel">
 
-    <h2 class="center">
-      Login
-    </h2>
+    <input id="password" type="password" placeholder="Password" autocomplete="current-password">
 
-    <input
-      id="username"
-      type="text"
-      placeholder="Username">
+    <button onclick="login()">Login</button>
 
-    <input
-      id="password"
-      type="password"
-      placeholder="Password">
+    <hr>
 
-    <button
-      class="login-button"
-      onclick="login()">
+    <h3>Create New Account</h3>
 
-      🔐 LOGIN
+    <input id="registerUsername" placeholder="Choose Username" autocomplete="username">
 
+    <input id="registerPhone" type="tel" placeholder="Phone Number" autocomplete="tel">
+
+    <input id="registerPassword" type="password" placeholder="Create Password" autocomplete="new-password">
+
+    <input id="confirmPassword" type="password" placeholder="Confirm Password" autocomplete="new-password">
+
+    <button onclick="registerPlayer()">Register</button>
+
+    <p id="loginMessage"></p>
+    <p id="registerMessage"></p>
+
+    <p class="small"><p class="small">Admin login</p></p>
+</section>
+
+
+  <section id="adminPanel" class="panel hidden">
+    <h2>Admin Dashboard</h2>
+    <div class="stat">Status: <strong id="adminStatus">Stopped</strong></div>
+    <div class="stat">Current Number: <strong id="adminCurrent">-</strong></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+      <button class="green" onclick="startGame()">START BINGO</button>
+      <button onclick="drawNumber()">DRAW NUMBER</button>
+      <button class="red" onclick="stopGame()">STOP BINGO</button>
+    </div>
+    <h3>Draw History</h3>
+    <div id="adminHistory"></div>
+    <hr>
+    <h3>Send Demo Balance</h3>
+    <input id="targetUser" placeholder="Player username">
+    <input id="amount" type="number" min="1" placeholder="Amount">
+    <input id="adminPassword" type="password" placeholder="Admin password">
+<button onclick="sendBalance()">Send Balance</button><pid="transferMessage"></p>    
+<h3>Withdrawal Requests</h3>
+<button onclick="loadWithdrawals()">Refresh Requests</button>
+<div id="withdrawalRequests"></div>
+<p id="withdrawalMessage"></p>
+<button onclick="logout()" class="red">Logout</button>
+ </section>
+
+    <section id="playerPanel" class="panel hidden">
+    <h2>Player Dashboard</h2>
+    <div class="stat">Player: <strong id="playerName"></strong></div>
+    <div class="stat">Wallet: <strong id="wallet">100.00</strong> Demo Birr</div>
+    <h3>Withdraw Demo Balance</h3>
+    <input id="withdrawAmount" type="number" min="10" placeholder="Amount to withdraw">
+    <button onclick="requestWithdrawal()">Request Withdrawal</button>
+    <p id="withdrawMessage"></p>
+
+    <div class="stat">Cartela No: <strong id="cartelaNumber">-</strong></div>
+    <div class="stat">Game: <strong id="playerStatus">Waiting</strong></div>
+    <div class="stat">Current Number: <strong id="playerCurrent">-</strong></div>
+    <div id="countdown" class="stat"></div>
+
+<label for="cartelaSelect">Choose Cartela Number (1–400)</label>
+<select id="cartelaSelect" style="width:100%;padding:12px;margin:5px 0;border-radius:6px;font-size:16px">
+  <option value="">Loading available Cartelas...</option>
+</select>
+
+<button id="buyButton" class="green" onclick="buyCartela()">Buy Cartela (10 Birr)</button>
+<p id="cartelaMessage" class="small"></p>
+<p id="cartelaMessage" class="small"></p>
+    <button id="buyButton" class="green" onclick="buyCartela()">Buy Cartela (10 Birr)</button>
+    <div id="cartela"></div>
+    <button id="bingoButton" onclick="claimBingo()" disabled>🎉 BINGO!</button>
+    <h3>Draw History</h3>
+    <div id="playerHistory"></div>
+    <h3>Transaction History</h3>
+    <ul id="transactions"></ul>
+    <button onclick="logout()" class="red">Logout</button>
+  </section>
+</div>
+
+<div id="winnerCelebration" class="hidden">
+  <div class="winner-card">
+    <div class="winner-trophy">🏆</div>
+    <div class="winner-title">🎉 BINGO WINNER! 🎉</div>
+    <div id="winnerName">Congratulations!</div>
+    <div id="winnerDetails"></div>
+    <button class="green" onclick="closeWinnerCelebration()">
+      CONTINUE
     </button>
-
-    <div id="loginMessage" class="center"></div>
-
-    <div class="demo">
-
-      <b>Demo Login</b>
-
-      <br><br>
-
-      Admin:
-      <b>admin</b> /
-      <b>1234</b>
-
-      <br>
-
-      Player:
-      <b>player</b> /
-      <b>1234</b>
-
-    </div>
-
   </div>
-
 </div>
-
-
-<!-- APP -->
-
-<div id="appPage" class="container hidden">
-
-  <button
-    class="logout"
-    onclick="logout()">
-
-    Logout
-
-  </button>
-
-  <h1>
-    🎱 Virtual Bingo
-  </h1>
-
-
-  <div class="card">
-
-    <h2 id="welcome"></h2>
-
-    <div id="roleText" class="center"></div>
-
-  </div>
-
-
-  <!-- ADMIN -->
-
-  <div id="adminPanel" class="hidden">
-
-    <div class="card">
-
-      <h2>
-        👑 Admin Dashboard
-      </h2>
-
-      <div class="admin-buttons">
-
-        <button onclick="startBingo()">
-          ▶ START BINGO
-        </button>
-
-        <button onclick="drawNumber()">
-          🎱 DRAW NUMBER
-        </button>
-
-        <button onclick="stopBingo()">
-          ⏹ STOP BINGO
-        </button>
-
-      </div>
-
-      <div id="adminStatus" class="status">
-        🔴 Bingo is stopped
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- PLAYER -->
-
-  <div id="playerPanel" class="hidden">
-
-    <div class="card">
-
-      <h2>
-        💰 Player Wallet
-      </h2>
-
-      <div id="wallet" class="wallet">
-        Wallet: 100 Birr
-      </div>
-
-    </div>
-
-
-    <div class="card">
-
-      <h2>
-        📋 Transaction History
-      </h2>
-
-      <div id="history">
-        No transactions yet.
-      </div>
-
-    </div>
-
-
-    <div class="card">
-
-      <h2>
-        🎫 My Cartela
-      </h2>
-
-      <div class="center">
-
-        <button onclick="buyCartela()">
-          BUY CARTELA – 10 BIRR
-        </button>
-
-      </div>
-
-      <div id="cartela">
-
-        <p class="center">
-          No Cartela purchased.
-        </p>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- COMMON GAME -->
-
-  <div class="card">
-
-    <div id="status" class="status">
-      🔴 Bingo is stopped
-    </div>
-
-    <div id="number" class="current-number">
-      Current Number: -
-    </div>
-
-  </div>
-
-
-  <div class="card">
-
-    <h2>
-      🎱 Drawn Numbers
-    </h2>
-
-    <div id="drawnNumbers" class="drawn">
-      -
-    </div>
-
-  </div>
-
-
-  <div class="card">
-
-    <div id="win" class="win"></div>
-
-    <div id="prize" class="prize"></div>
-
-  </div>
-
-</div>
-
 
 <script src="/socket.io/socket.io.js"></script>
-
 <script>
-
-let socket = null;
-
-let role = "";
+const socket = io();
 
 let username = "";
-
+let role = "";
 let wallet = 100;
-
+let cartela = null;
 let transactions = [];
-
-let cartela = [];
-
-let cartelaNumber = "";
-
 let drawnNumbers = [];
-
-let hasWon = false;
-
 let gameRunning = false;
+let lobbySeconds = 0;
+let countdownTimer = null;
+
+function $(id){ return document.getElementById(id); }
 
 
-/* LOGIN */
+async function registerPlayer() {
+  const username = $("registerUsername").value.trim();
+  const phone = $("registerPhone").value.trim();
+  const password = $("registerPassword").value;
+  const confirmPassword = $("confirmPassword").value;
+  const message = $("registerMessage");
 
-function login() {
+  message.textContent = "Registering...";
 
-  const usernameInput =
-    document.getElementById("username").value.trim();
+  try {
+    const response = await fetch("/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username,
+        phone,
+        password,
+        confirmPassword
+      })
+    });
 
-  const passwordInput =
-    document.getElementById("password").value;
-
-  if (!usernameInput || !passwordInput) {
-
-    document.getElementById("loginMessage").innerText =
-      "Please enter username and password.";
-
-    return;
-
-  }
-
-  fetch("/login", {
-
-    method: "POST",
-
-    headers: {
-      "Content-Type": "application/json"
-    },
-
-    body: JSON.stringify({
-      username: usernameInput,
-      password: passwordInput
-    })
-
-  })
-
-  .then(response => response.json())
-
-  .then(data => {
-
-    if (!data.success) {
-
-      document.getElementById("loginMessage").innerText =
-        data.message;
-
-      return;
-
-    }
-
-    role = data.role;
-
-    username =
-      data.username ||
-      usernameInput;
-
-    document.getElementById("loginPage")
-      .classList.add("hidden");
-
-    document.getElementById("appPage")
-      .classList.remove("hidden");
-
-    document.getElementById("welcome").innerText =
-      "Welcome, " + username;
-
-    document.getElementById("roleText").innerText =
-      "Role: " + role.toUpperCase();
-
-    if (role === "admin") {
-
-      document.getElementById("adminPanel")
-        .classList.remove("hidden");
-
-    }
-
-    if (role === "player") {
-
-      document.getElementById("playerPanel")
-        .classList.remove("hidden");
-
-      loadPlayerData();
-
-    }
-
-    connectSocket();
-
-  });
-
-}
-
-
-/* SOCKET */
-
-function connectSocket() {
-
-  socket = io();
-
-  socket.on("connect", () => {
-
-    console.log(
-      "Connected:",
-      socket.id
+    const data = await response.json();
+    message.textContent = data.message || (
+      data.success ? "Registration successful." : "Registration failed."
     );
-
-  });
-
-
-  socket.on("bingoStarted", () => {
-
-    gameRunning = true;
-
-    document.getElementById("status").innerText =
-      "🟢 BINGO STARTED";
-
-    const adminStatus =
-      document.getElementById("adminStatus");
-
-    if (adminStatus) {
-
-      adminStatus.innerText =
-        "🟢 Bingo is running";
-
-    }
-
-  });
-
-
-  socket.on("bingoStopped", () => {
-
-    gameRunning = false;
-
-    document.getElementById("status").innerText =
-      "🔴 BINGO STOPPED";
-
-    const adminStatus =
-      document.getElementById("adminStatus");
-
-    if (adminStatus) {
-
-      adminStatus.innerText =
-        "🔴 Bingo is stopped";
-
-    }
-
-  });
-
-
-  socket.on("number", number => {
-
-    drawnNumbers.push(number);
-
-    document.getElementById("number").innerText =
-      "Current Number: " + number;
-
-    document.getElementById("drawnNumbers").innerText =
-      drawnNumbers.join(" - ");
-
-    speakNumber(number);
-
-    if (role === "player") {
-
-      drawCartela();
-
-      checkBingo();
-
-    }
-
-  });
-
-
-  socket.on("winner", data => {
-
-    gameRunning = false;
-
-    document.getElementById("status").innerText =
-      "🔴 BINGO STOPPED";
-
-    const winners =
-      Array.isArray(data.winners)
-        ? data.winners
-        : [];
-
-    const prizePerWinner =
-      Number(data.prizePerWinner || 0);
-
-    const winnerCount =
-      winners.length;
-
-    if (
-      role === "player" &&
-      winners.includes(socket.id)
-    ) {
-
-      wallet += prizePerWinner;
-
-      transactions.push({
-
-        type: "Bingo Prize",
-
-        amount: prizePerWinner
-
-      });
-
-      savePlayerData();
-
-      updateWallet();
-
-      showHistory();
-
-      document.getElementById("win").innerText =
-        "🎉 BINGO! YOU WIN! 🎉";
-
-      document.getElementById("prize").innerText =
-        "💰 Prize: +" +
-        prizePerWinner.toFixed(2) +
-        " Birr";
-
-    } else {
-
-      document.getElementById("win").innerText =
-        "🏆 We have " +
-        winnerCount +
-        " Bingo winner(s)!";
-
-      document.getElementById("prize").innerText =
-        "💰 Prize per winner: " +
-        prizePerWinner.toFixed(2) +
-        " Birr";
-
-    }
-
-  });
-
-}
-
-
-/* START */
-
-function startBingo() {
-
-  fetch("/start", {
-    method: "POST"
-  })
-
-  .then(response => response.json())
-
-  .then(data => {
 
     if (data.success) {
-
-      drawnNumbers = [];
-
-      hasWon = false;
-
-      document.getElementById("number").innerText =
-        "Current Number: -";
-
-      document.getElementById("drawnNumbers").innerText =
-        "-";
-
-      document.getElementById("win").innerText =
-        "";
-
-      document.getElementById("prize").innerText =
-        "";
-
+      $("username").value = username;
     }
-
-  });
-
-}
-
-
-/* DRAW */
-
-function drawNumber() {
-
-  fetch("/draw", {
-    method: "POST"
-  })
-
-  .then(response => response.json())
-
-  .then(data => {
-
-    if (data.message) {
-
-      alert(data.message);
-
-    }
-
-  });
-
-}
-
-
-/* STOP */
-
-function stopBingo() {
-
-  fetch("/stop", {
-    method: "POST"
-  });
-
-}
-
-
-/* PLAYER DATA */
-
-function loadPlayerData() {
-
-  const savedWallet =
-    localStorage.getItem("bingoWalletV2");
-
-  if (savedWallet !== null) {
-
-    wallet =
-      Number(savedWallet);
-
-  } else {
-
-    wallet = 100;
-
-    savePlayerData();
-
+  } catch (error) {
+    message.textContent = "Connection error. Please try again.";
+    console.error(error);
   }
-
-
-  const savedHistory =
-    localStorage.getItem("bingoTransactionsV2");
-
-  if (savedHistory) {
-
-    try {
-
-      transactions =
-        JSON.parse(savedHistory);
-
-    } catch {
-
-      transactions = [];
-
-    }
-
-  }
-
-
-  /* LOAD CARTELA */
-
-  const savedCartela =
-    localStorage.getItem("bingoCartelaV3");
-
-  if (savedCartela) {
-
-    try {
-
-      const savedData =
-        JSON.parse(savedCartela);
-
-      cartela =
-        savedData.cartela || [];
-
-      cartelaNumber =
-        savedData.cartelaNumber || "";
-
-    } catch {
-
-      cartela = [];
-
-      cartelaNumber = "";
-
-    }
-
-  }
-
-
-  updateWallet();
-
-  showHistory();
-
-  drawCartela();
-
 }
 
-
-/* SAVE PLAYER DATA */
-
-function savePlayerData() {
-
-  localStorage.setItem(
-    "bingoWalletV2",
-    wallet
-  );
-
-  localStorage.setItem(
-    "bingoTransactionsV2",
-    JSON.stringify(transactions)
-  );
-
-}
-
-
-/* SAVE CARTELA */
-
-function saveCartela() {
-
-  localStorage.setItem(
-    "bingoCartelaV3",
-    JSON.stringify({
-
-      cartela: cartela,
-
-      cartelaNumber: cartelaNumber
-
-    })
-  );
-
-}
-
-
-/* WALLET */
-
-function updateWallet() {
-
-  const walletElement =
-    document.getElementById("wallet");
-
-  if (walletElement) {
-
-    walletElement.innerText =
-      "Wallet: " +
-      wallet.toFixed(2) +
-      " Birr";
-
-  }
-
-}
-
-
-/* HISTORY */
-
-function showHistory() {
-
-  const historyElement =
-    document.getElementById("history");
-
-  if (!historyElement) {
+async function login(){
+  const user = $("username").value.trim();
+  const pass = $("password").value;
+  if(!user || !pass){
+    $("loginMessage").textContent = "Enter username and password.";
     return;
   }
 
-  if (transactions.length === 0) {
-
-    historyElement.innerText =
-      "No transactions yet.";
-
-    return;
-
-  }
-
-  let html = "";
-
-  for (
-    let i = transactions.length - 1;
-    i >= 0;
-    i--
-  ) {
-
-    const item =
-      transactions[i];
-
-    const sign =
-      item.amount >= 0
-        ? "+"
-        : "";
-
-    html +=
-      "<div class='history-item'>" +
-
-      sign +
-
-      Number(item.amount).toFixed(2) +
-
-      " Birr — " +
-
-      item.type +
-
-      "</div>";
-
-  }
-
-  historyElement.innerHTML =
-    html;
-
-}
-
-
-/* BUY CARTELA */
-
-function buyCartela() {
-
-  if (gameRunning) {
-
-    alert(
-      "Please wait until Bingo is finished."
-    );
-
-    return;
-
-  }
-
-  if (wallet < 10) {
-
-    alert(
-      "Insufficient balance. You need 10 Birr."
-    );
-
-    return;
-
-  }
-
-  wallet -= 10;
-
-  transactions.push({
-
-    type: "Cartela Purchase",
-
-    amount: -10
-
-  });
-
-  savePlayerData();
-
-  updateWallet();
-
-  showHistory();
-
-  generateCartela();
-
-}
-
-
-/* GENERATE CARTELA */
-
-function generateCartela() {
-
-  /* AUTOMATIC CARTELA NUMBER */
-
-  let newNumber;
-
-  do {
-
-    newNumber =
-      Math.floor(
-        100000 +
-        Math.random() * 900000
-      ).toString();
-
-  } while (
-    newNumber === cartelaNumber
-  );
-
-  cartelaNumber =
-    newNumber;
-
-
-  let B = [];
-
-  let I = [];
-
-  let N = [];
-
-  let G = [];
-
-  let O = [];
-
-
-  while (B.length < 5) {
-
-    const n =
-      Math.floor(
-        Math.random() * 15
-      ) + 1;
-
-    if (!B.includes(n)) {
-
-      B.push(n);
-
-    }
-
-  }
-
-
-  while (I.length < 5) {
-
-    const n =
-      Math.floor(
-        Math.random() * 15
-      ) + 16;
-
-    if (!I.includes(n)) {
-
-      I.push(n);
-
-    }
-
-  }
-
-
-  while (N.length < 5) {
-
-    const n =
-      Math.floor(
-        Math.random() * 15
-      ) + 31;
-
-    if (!N.includes(n)) {
-
-      N.push(n);
-
-    }
-
-  }
-
-
-  while (G.length < 5) {
-
-    const n =
-      Math.floor(
-        Math.random() * 15
-      ) + 46;
-
-    if (!G.includes(n)) {
-
-      G.push(n);
-
-    }
-
-  }
-
-
-  while (O.length < 5) {
-
-    const n =
-      Math.floor(
-        Math.random() * 15
-      ) + 61;
-
-    if (!O.includes(n)) {
-
-      O.push(n);
-
-    }
-
-  }
-
-
-  N[2] = "FREE";
-
-
-  cartela = [
-    B,
-    I,
-    N,
-    G,
-    O
-  ];
-
-
-  hasWon = false;
-
-
-  saveCartela();
-
-  drawCartela();
-
-}
-
-
-/* SHOW CARTELA */
-
-function drawCartela() {
-
-  const cartelaElement =
-    document.getElementById("cartela");
-
-  if (!cartelaElement) {
-    return;
-  }
-
-
-  if (cartela.length === 0) {
-
-    cartelaElement.innerHTML =
-      "<p class='center'>" +
-      "No Cartela purchased." +
-      "</p>";
-
-    return;
-
-  }
-
-
-  let html =
-
-    "<div class='cartela-number'>" +
-
-    "🎫 Cartela No: " +
-
-    cartelaNumber +
-
-    "</div>" +
-
-    "<table>" +
-
-    "<tr>" +
-
-    "<th>B</th>" +
-
-    "<th>I</th>" +
-
-    "<th>N</th>" +
-
-    "<th>G</th>" +
-
-    "<th>O</th>" +
-
-    "</tr>";
-
-
-  for (
-    let row = 0;
-    row < 5;
-    row++
-  ) {
-
-    html += "<tr>";
-
-    for (
-      let col = 0;
-      col < 5;
-      col++
-    ) {
-
-      const value =
-        cartela[col][row];
-
-      let marked = "";
-
-      if (
-        value === "FREE" ||
-        drawnNumbers.includes(value)
-      ) {
-
-        marked =
-          " class='marked'";
-
-      }
-
-      html +=
-        "<td" +
-        marked +
-        ">" +
-        value +
-        "</td>";
-
-    }
-
-    html += "</tr>";
-
-  }
-
-  html += "</table>";
-
-  cartelaElement.innerHTML =
-    html;
-
-}
-
-
-/* SOUND */
-
-function speakNumber(number) {
-
-  if (
-    !("speechSynthesis" in window)
-  ) {
-
-    return;
-
-  }
-
-  window.speechSynthesis.cancel();
-
-  const speech =
-    new SpeechSynthesisUtterance(
-      "Number " + number
-    );
-
-  speech.lang =
-    "en-US";
-
-  speech.rate =
-    0.8;
-
-  speech.pitch =
-    1;
-
-  window.speechSynthesis.speak(
-    speech
-  );
-
-}
-
-
-/* CHECK BINGO */
-
-function checkBingo() {
-
-  if (
-    role !== "player" ||
-    cartela.length === 0 ||
-    hasWon ||
-    !gameRunning
-  ) {
-
-    return;
-
-  }
-
-
-  /* ROW */
-
-  for (
-    let row = 0;
-    row < 5;
-    row++
-  ) {
-
-    let count = 0;
-
-    for (
-      let col = 0;
-      col < 5;
-      col++
-    ) {
-
-      const value =
-        cartela[col][row];
-
-      if (
-        value === "FREE" ||
-        drawnNumbers.includes(value)
-      ) {
-
-        count++;
-
-      }
-
-    }
-
-    if (count === 5) {
-
-      hasWon = true;
-
-      socket.emit("bingo");
-
+  try{
+    const response = await fetch("/login",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({username:user,password:pass})
+    });
+    const data = await response.json();
+
+    if(!response.ok || !data.success){
+      $("loginMessage").textContent = data.message || "Login failed.";
       return;
-
     }
 
+    username = user;
+    role = data.role || (user === "admin" ? "admin" : "player");
+    $("loginPanel").classList.add("hidden");
+
+    if(role === "admin"){
+      $("adminPanel").classList.remove("hidden");
+      updateAdminHistory();
+    }else{
+      $("playerPanel").classList.remove("hidden");
+      $("playerName").textContent = username;
+     await loadPlayerData();
+await loadAvailableCartelas();
+$("bingoButton").disabled = !gameRunning || !cartela;
+    }
+  }catch(error){
+    $("loginMessage").textContent = "Cannot connect to server. Check CMD.";
   }
+}
 
+async function loadPlayerData(){
+  try{
+    const response = await fetch("/player/balance/" + encodeURIComponent(username));
+    const data = await response.json();
 
-  /* COLUMN */
+    if(!response.ok) return;
 
-  for (
-    let col = 0;
-    col < 5;
-    col++
-  ) {
+    wallet = Number(data.balance ?? 100);
+    transactions = data.transactions || [];
+    cartela = data.cartela || null;
+    drawnNumbers = (data.drawnNumbers || []).map(Number);
+    gameRunning = Boolean(data.bingoStarted);
+    lobbySeconds = Number(data.lobbySeconds || 0);
 
-    let count = 0;
+    $("wallet").textContent = wallet.toFixed(2);
+    $("playerStatus").textContent = data.waitingForGame
+      ? "Waiting for players"
+      : (gameRunning ? "Running" : "Stopped");
 
-    for (
-      let row = 0;
-      row < 5;
-      row++
-    ) {
+    renderTransactions();
+    showCartela();
+    updateHistory();
+    markDrawnNumbers();
 
-      const value =
-        cartela[col][row];
+    $("buyButton").disabled = Boolean(cartela) || gameRunning;
+    $("bingoButton").disabled = !gameRunning || !cartela;
 
-      if (
-        value === "FREE" ||
-        drawnNumbers.includes(value)
-      ) {
-
-        count++;
-
-      }
-
-    }
-
-    if (count === 5) {
-
-      hasWon = true;
-
-      socket.emit("bingo");
-
-      return;
-
-    }
-
+    if(lobbySeconds > 0) startCountdown(lobbySeconds);
+  }catch(error){
+    console.error("Player data error:",error);
   }
+}
 
+function showCartela(){
+  const root = $("cartela");
+  root.innerHTML = "";
 
-  /* DIAGONAL 1 */
-
-  let count1 = 0;
-
-  for (
-    let i = 0;
-    i < 5;
-    i++
-  ) {
-
-    const value =
-      cartela[i][i];
-
-    if (
-      value === "FREE" ||
-      drawnNumbers.includes(value)
-    ) {
-
-      count1++;
-
-    }
-
-  }
-
-  if (count1 === 5) {
-
-    hasWon = true;
-
-    socket.emit("bingo");
-
+  if(!cartela){
+    $("cartelaNumber").textContent = "-";
+    $("bingoButton").disabled = true;
     return;
-
   }
 
+  $("cartelaNumber").textContent = cartela.id ?? cartela.number ?? "-";
 
-  /* DIAGONAL 2 */
+  ["B","I","N","G","O"].forEach(letter=>{
+    const cell = document.createElement("div");
+    cell.className = "cell head";
+    cell.textContent = letter;
+    root.appendChild(cell);
+  });
 
-  let count2 = 0;
+  const card = cartela.card || cartela.numbers;
+  if(!Array.isArray(card)) return;
 
-  for (
-    let i = 0;
-    i < 5;
-    i++
-  ) {
+  card.forEach((row,rowIndex)=>{
+    row.forEach((value,colIndex)=>{
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.dataset.number = String(value);
+      cell.textContent = String(value);
+      if(String(value).toUpperCase() === "FREE") cell.classList.add("marked");
+      root.appendChild(cell);
+    });
+  });
 
-    const value =
-      cartela[i][4 - i];
+  markDrawnNumbers();
+}
 
-    if (
-      value === "FREE" ||
-      drawnNumbers.includes(value)
-    ) {
+function markDrawnNumbers(){
+  const drawn = new Set(drawnNumbers.map(Number));
 
-      count2++;
+  document.querySelectorAll("#cartela .cell:not(.head)").forEach(cell=>{
+    const value = cell.dataset.number;
+    const isFree = value && value.toUpperCase() === "FREE";
+    const isDrawn = value !== undefined && drawn.has(Number(value));
 
-    }
+    cell.classList.toggle("marked",Boolean(isFree || isDrawn));
+  });
+}
 
-  }
+function updateHistory(){
+  const html = drawnNumbers.map(n=>`<span class="ball">${n}</span>`).join("");
+  $("playerHistory").innerHTML = html;
+}
 
-  if (count2 === 5) {
+function updateAdminHistory(){
+  $("adminHistory").innerHTML = drawnNumbers.map(n=>`<span class="ball">${n}</span>`).join("");
+}
 
-    hasWon = true;
-
-    socket.emit("bingo");
-
-  }
-
+function renderTransactions(){
+  $("transactions").innerHTML = "";
+  transactions.forEach(t=>{
+    const li = document.createElement("li");
+    li.textContent = `${t.type || "Transaction"}: ${Number(t.amount || 0).toFixed(2)} Birr`;
+    $("transactions").appendChild(li);
+  });
 }
 
 
-/* LOGOUT */
+async function loadAvailableCartelas(){
+  const select = $("cartelaSelect");
+  select.innerHTML = "";
 
-function logout() {
+  try {
+    const response = await fetch("/cartela/available");
+    const data = await response.json();
 
-  if (socket) {
+    if (!response.ok || !data.success) {
+      throw new Error("Could not load Cartelas.");
+    }
 
-    socket.disconnect();
+    if (data.available.length === 0) {
+      select.add(new Option("No Cartelas available", ""));
+      $("buyButton").disabled = true;
+      return;
+    }
 
+    select.add(new Option("Select a Cartela number", ""));
+
+    data.available.forEach(number => {
+      select.add(new Option("Cartela " + number, String(number)));
+    });
+
+    $("cartelaMessage").textContent =
+      data.available.length + " Cartelas available.";
+  } catch (error) {
+    select.innerHTML = "";
+    select.add(new Option("Could not load Cartelas", ""));
+    $("cartelaMessage").textContent =
+      "Cannot load Cartelas. Please refresh the page.";
+  }
+}
+
+async function buyCartela(){
+  if(!username) return;
+  $("buyButton").disabled = true;
+
+  try{
+    const response = await fetch("/cartela",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({username})
+    });
+    const data = await response.json();
+
+    if(!response.ok || !data.success){
+      alert(data.message || "Cartela purchase failed.");
+      $("buyButton").disabled = false;
+      return;
+    }
+
+    await loadPlayerData();
+  }catch(error){
+    alert("Cannot connect to server.");
+    $("buyButton").disabled = false;
+  }
+}
+
+function startCountdown(seconds){
+  clearInterval(countdownTimer);
+  let remaining = Number(seconds);
+
+  countdownTimer = setInterval(()=>{
+    $("countdown").textContent = "Game starts in: " + remaining + " seconds";
+    remaining--;
+
+    if(remaining < 0){
+      clearInterval(countdownTimer);
+      $("countdown").textContent = "";
+    }
+  },1000);
+}
+
+async function startGame(){
+  await adminPost("/start",{});
+}
+
+async function drawNumber(){
+  await adminPost("/draw",{});
+}
+
+async function stopGame(){
+  await adminPost("/stop",{});
+}
+
+async function adminPost(path,body){
+  try{
+    const response = await fetch(path,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(body)
+    });
+    const data = await response.json();
+    if(!response.ok || !data.success) alert(data.message || "Action failed.");
+  }catch(error){
+    alert("Cannot connect to server.");
+  }
+}
+
+
+async function loadWithdrawals(){
+  const password = $("adminPassword").value;
+  const box = $("withdrawalRequests");
+  const message = $("withdrawalMessage");
+
+  if(!password){
+    message.textContent = "Enter admin password first.";
+    return;
   }
 
+  try{
+    const response = await fetch("/admin/withdrawals",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({adminPassword:password})
+    });
+
+    const data = await response.json();
+    box.innerHTML = "";
+
+    if(!response.ok || !data.success){
+      message.textContent = data.message || "Could not load requests.";
+      return;
+    }
+
+    message.textContent = data.requests.length + " withdrawal request(s).";
+
+    data.requests.forEach(request=>{
+      const item = document.createElement("div");
+      item.style.padding = "10px";
+      item.style.margin = "8px 0";
+      item.style.border = "1px solid #ccc";
+      item.style.borderRadius = "6px";
+
+      const details = document.createElement("p");
+      details.textContent =
+        "Request #" + request.id +
+        " | Player: " + request.username +
+        " | Amount: " + Number(request.amount).toFixed(2) +
+        " Demo Birr | Status: " + request.status;
+
+      item.appendChild(details);
+
+      if(request.status === "Pending"){
+        ["approve","reject"].forEach(action=>{
+          const button = document.createElement("button");
+          button.textContent =
+            action === "approve" ? "Approve" : "Reject";
+          button.style.marginRight = "8px";
+
+          button.onclick = async ()=>{
+            const result = await fetch(
+              "/admin/withdrawals/" + request.id + "/review",
+              {
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({
+                  adminPassword:password,
+                  action
+                })
+              }
+            );
+
+            const resultData = await result.json();
+            message.textContent =
+              resultData.message || "Review completed.";
+
+            if(result.ok && resultData.success){
+              await loadWithdrawals();
+            }
+          };
+
+          item.appendChild(button);
+        });
+      }
+
+      box.appendChild(item);
+    });
+  }catch(error){
+    message.textContent = "Cannot connect to server. Check CMD.";
+  }
+}
+
+
+async function requestWithdrawal(){
+  const amount = Number($("withdrawAmount").value);
+
+  if(!username){
+    $("withdrawMessage").textContent = "Please log in first.";
+    return;
+  }
+
+  if(!Number.isFinite(amount) || amount < 10){
+    $("withdrawMessage").textContent = "Minimum withdrawal is 10 Demo Birr.";
+    return;
+  }
+
+  try{
+    const response = await fetch("/withdraw/request", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({username, amount})
+    });
+
+    const data = await response.json();
+    $("withdrawMessage").textContent =
+      data.message || "Withdrawal request failed.";
+
+    if(response.ok && data.success){
+      $("withdrawAmount").value = "";
+      await loadPlayerData();
+    }
+  }catch(error){
+    $("withdrawMessage").textContent = "Cannot connect to server.";
+  }
+}
+async function sendBalance(){
+  const target = $("targetUser").value.trim();
+  const amount = Number($("amount").value);
+  const adminPassword = $("adminPassword").value;
+
+  try{
+    const response = await fetch("/admin/send-balance",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({username:target,amount,adminPassword})
+    });
+    const data = await response.json();
+    $("transferMessage").textContent = data.message || (data.success ? "Balance sent." : "Transfer failed.");
+  }catch(error){
+    $("transferMessage").textContent = "Cannot connect to server.";
+  }
+}
+
+function claimBingo(){
+  if(!gameRunning){
+    alert("Bingo is not running.");
+    return;
+  }
+  socket.emit("bingo");
+}
+
+function logout(){
+  clearInterval(countdownTimer);
   location.reload();
-
 }
 
-</script>
+socket.on("number",number=>{
+  const n = Number(number);
+  if(!drawnNumbers.includes(n)) drawnNumbers.push(n);
 
+  $("adminCurrent").textContent = n;
+  $("playerCurrent").textContent = n;
+
+  updateHistory();
+  updateAdminHistory();
+  markDrawnNumbers();
+});
+
+socket.on("bingoStarted",()=>{
+  gameRunning = true;
+  drawnNumbers = [];
+  $("adminStatus").textContent = "Running";
+  $("playerStatus").textContent = "Running";
+  $("adminCurrent").textContent = "-";
+  $("playerCurrent").textContent = "-";
+  $("bingoButton").disabled = !cartela;
+  markDrawnNumbers();
+  updateHistory();
+  updateAdminHistory();
+});
+
+socket.on("bingoStopped",()=>{
+  gameRunning = false;
+  $("adminStatus").textContent = "Stopped";
+  $("playerStatus").textContent = "Stopped";
+  $("bingoButton").disabled = true;
+});
+
+socket.on("balanceUpdated",async data=>{
+  if(data && data.username === username) await loadPlayerData();
+});
+
+
+function showWinnerCelebration(data){
+  const names = Array.isArray(data.winners)
+    ? data.winners.join(", ")
+    : (data.winner || data.username || "Winner");
+
+  $("winnerName").textContent = names;
+
+  const prize = Number(data.prize || 0);
+  const details = ["🏆 Prize: " + prize.toFixed(2) + " Demo Birr"];
+
+  if(data.cartelaNumber != null){
+    details.push("🎱 Cartela: " + data.cartelaNumber);
+  }
+
+  if(data.winners && data.winners.length > 1){
+    details.push("🎉 Multiple winners!");
+  }
+
+  $("winnerDetails").textContent = details.join(" | ");
+  $("winnerCelebration").classList.remove("hidden");
+
+  const overlay = $("winnerCelebration");
+
+  overlay.querySelectorAll(".confetti-piece").forEach(piece => piece.remove());
+
+  for(let i = 0; i < 100; i++){
+    const piece = document.createElement("span");
+    piece.className = "confetti-piece";
+    piece.style.left = Math.random() * 100 + "%";
+    piece.style.backgroundColor =
+      ["#facc15","#22c55e","#38bdf8","#f472b6","#fb923c"]
+      [Math.floor(Math.random() * 5)];
+    piece.style.animationDelay = Math.random() * 1.5 + "s";
+    piece.style.animationDuration = (2 + Math.random() * 2) + "s";
+    overlay.appendChild(piece);
+  }
+}
+
+function closeWinnerCelebration(){
+  $("winnerCelebration").classList.add("hidden");
+}
+
+socket.on("winner", data => {
+  showWinnerCelebration(data || {});
+});
+
+
+socket.on("connect",()=>{
+  if(username && role === "player") loadPlayerData();
+});
+</script>
 </body>
 </html>
